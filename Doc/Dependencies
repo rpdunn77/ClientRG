@@ -1,0 +1,10 @@
+These packages must be installed for Xubuntu 14.04 LTE.
+
+OS Packages
+   perltidy 
+   m4
+
+Perl Packages (from CPAN)
+   AnyEvent
+   Try::Tiny
+   Devel::Cover

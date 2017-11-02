@@ -1,0 +1,101 @@
+package Fsm::TO;
+#================================================================--
+# File Name    : Fsm/TO.pm
+#
+# Purpose      : implements task TO
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      name => my $name,
+      count => my $count,
+      timeOut => my $timeOut,
+      svName => my $svName
+   };
+
+   if (defined($params{name})) {
+      $self->{name} = $params{name};
+   } else {
+      die(Exc::Exception->new(name => "Task::TO name undefined"));
+   }
+
+   if (defined($params{svName})) {
+      $self->{svName} = $params{svName};
+   } else {
+      die(Exc::Exception->new(name => "Task::TO svName undefined"));
+   }
+                
+   if (defined($params{timeOut})) {
+      $self->{timeOut} = $params{timeOut}; 
+   } else {
+      die(Exc::Exception->new(name => "Task::TO timeout  undefined"));
+   }
+                
+   bless ($self, $class);
+   return $self;
+}
+
+sub nextState {
+   my $c = shift @_;
+   my $t = shift @_;
+
+   if ($c == $t) {
+      return("S2");
+   } 
+
+   return("S1");
+}
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "S1",
+
+   $self->{count} = $self->{count} + 1;
+   Table::TASK->suspend($self->{name}),
+
+   nextState($self->{count}, $self->{timeOut})
+)
+
+mmt_TableRow(
+   "S2", 
+
+   Table::SVAR->assign($self->{svName}, 1);   
+   Table::TASK->suspend($self->{name}),
+
+   "S3"
+)
+
+mmt_TableRow(
+   "S3", 
+
+   Table::TASK->suspend($self->{name}),
+
+   "S3"
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "S1",
+
+   $self->{count} = 0;
+   Table::SVAR->assign($self->{svName}, 0)   
+)
+
+
+1;

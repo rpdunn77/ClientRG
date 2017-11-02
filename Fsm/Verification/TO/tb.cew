@@ -1,0 +1,76 @@
+#================================================================--
+# File Name    : Fsm/Verification/LTO/tb.cew
+#
+# Purpose      : unit testing
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#------------------------------------------------------------------
+# Revision List
+# Version      Author  Date    Changes
+# 1.0          PW      Oct 12  New version
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../';
+use Exc::Exception;
+use Try::Tiny;
+use Fsm::LTO;
+use Executive::SCHEDULER;
+use Executive::EXECUTIONER;
+use Executive::TIMER;
+use constant TRUE => 1;
+use constant FALSE => 0;
+use Table::SVAR;
+use Table::TASK;
+
+sub clock_tick {
+   my $num = shift @_;
+
+   my $i;
+
+   for ($i=0; $i<$num; $i++) {
+      Executive::SCHEDULER->tick();
+      Executive::EXECUTIONER->tick();
+   }
+}
+
+my $tl = Exc::TryCatch->new(
+   fn => sub {
+
+      Table::TASK->create(
+         name => "LTO",
+         periodic => FALSE,
+         run => TRUE,
+         resetPtr => Fsm::LTO->get_reset_ref(),
+         taskPtr => Fsm::LTO->get_task_ref()
+      );
+
+   }
+);
+
+$tl->run();
+Table::SVAR->add(name => "sv_lto", value => 0);
+
+cew_Variables
+
+cew_Ncase(clock_tick(1), Table::TASK->get_currentState("LTO"), "S0")
+cew_Ncase(clock_tick(1), Table::TASK->get_currentState("LTO"), "S1")
+clock_tick(8);
+cew_Ncase(clock_tick(1), Table::TASK->get_currentState("LTO"), "S2")
+cew_Ncase(clock_tick(1), Table::TASK->get_currentState("LTO"), "S3")
+cew_Ncase( , Table::SVAR->get_value("sv_lto"), 1)
+
+Table::TASK->reset("LTO");
+cew_Ncase(clock_tick(1), Table::TASK->get_currentState("LTO"), "S0")
+clock_tick(1);
+cew_Ncase( , Table::SVAR->get_value("sv_lto"), 0)
+
+cew_Summary

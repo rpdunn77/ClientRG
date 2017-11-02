@@ -1,0 +1,28 @@
+Moorie Machine Translation
+--------------------------
+A Moore state-machine task has three major components viz,  a state table,
+an initial state and the actions associated with a synchronous reset.
+
+The state table details state transitions and outputs. The task starts
+
+The tags below show the syntax used to capture these three components.
+
+moore_Begin
+
+moore_Reset(Action(s))   
+
+moore_TableBegin(Initial_State) 
+moore_TableRow(Current_State, Action(s), Next_State)
+...
+moore_TableRow(Current_State, Action(s), Next_State)
+moore_TableEnd
+
+moore_End
+
+Note 1: A file containing a Moore state-machine task must have extension
+.moore and exist in the Fsm directory.
+
+Note 2: The moore_Reset tag is required even if there are no actions
+associated with the task.
+
+
