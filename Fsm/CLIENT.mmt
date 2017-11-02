@@ -46,6 +46,8 @@ my $ns;
 
 mmt_TableRow(
    "UNREG", 
+   
+   my $msg = $main::line->dequeue_packet();
    my $reg = Table::SVAR->get_value("sv_regbutton");
    if($reg == 1){
       my $regmsg = "REG_" . $myport;
