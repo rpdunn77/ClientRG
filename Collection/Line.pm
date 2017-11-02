@@ -20,16 +20,16 @@ my $PCHAR_ESC = '_G_';
 my $PCHAR_END = '_H_';
 # set as local variables because they will be used in regex
 use constant SEPSIZE => 6; # |$PCHAR_ESC| + |$PCHAR_END|
-use constant MAX => 10000;
+use constant MAX => 100;
 
-my $inbuff='';
-my $outbuff='';
+my $inbuff = '';
+my $outbuff = '';
 
 sub  new {
    my $class = shift @_;
    my %params = @_;
 
-   my $self = {maxbuff => 1000,
+   my $self = {maxbuff => MAX,
                inbuff => $inbuff,
                outbuff => $outbuff};
 
@@ -45,17 +45,18 @@ sub dequeue_packet {
    my $self = shift @_;
 
    my $hold = undef;
+
    # regex is prototype code... needs to be optimized
-   if ($self->{inbuff} =~ m/$PCHAR_ESC.*?$PCHAR_END/) {
-      $self->{inbuff} =~ s/$PCHAR_ESC.*?$PCHAR_END//;
+   my $pattern = $PCHAR_ESC . ".*?". $PCHAR_END;
+
+   $self->{inbuff} =~ s/$pattern//;
+   if (defined($')) {
       $self->{inbuff} = $'; # remove any garbage before the pkt
-      $hold=$&;
+      $hold = $&;
+
       $hold =~ s/$PCHAR_END//g;
       $hold =~ s/$PCHAR_ESC//g;
-      if ($hold eq "heartbeat") {
-         $hold = undef;
-      }  
-   }
+   } 
 
    return $hold;
 }
@@ -64,13 +65,8 @@ sub enqueue_packet {
    my $self = shift @_;
    my $msg = shift @_;
 
-   #my $l = length($self->{outbuff});
-   #print("Outbuff length $l \n");
-   #my $v = $self->{outbuff};
-   #print("Outbuff val $v \n");
-
    if ((length($self->{outbuff}) + length($msg) + SEPSIZE) > ($self->{maxbuff})) {
-      die(Exc::Exception->new(name => "Out fullbuff"));
+      die(Exc::Exception->new(name => "fullbuff"));
    }
 
    $self->{outbuff} = $self->{outbuff} . $PCHAR_ESC . $msg . $PCHAR_END;
@@ -81,15 +77,16 @@ sub enqueue_packet_fragment {
    my $self = shift @_;
    my $chunk = shift @_;
 
-   #my $l = length($self->{inbuff});
-   #print("Inbuff length $l \n");
-   #my $v = $self->{inbuff};
-   #print("Inbuff val $v \n");
-
    if ((length($self->{inbuff}) + length($chunk)) > ($self->{maxbuff})) {
-      die(Exc::Exception->new(name => "In fullbuff"));
+      die(Exc::Exception->new(name => "fullbuff"));
    }
+
    $self->{inbuff} = $self->{inbuff} . $chunk;
+
+   # regex is prototype code... needs to be optimized
+   my $pattern = $PCHAR_ESC . "heartbeat". $PCHAR_END;
+   $self->{inbuff} =~ s/$pattern//g;
+
    return;
 }
 
