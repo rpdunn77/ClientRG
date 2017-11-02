@@ -129,7 +129,10 @@ mmt_TableRow(
 )
 
 mmt_TableRow(
-   "GO", 
+   "GO",
+   
+   my $msg = $main::line->dequeue_packet();
+   
    if(!(defined($starttime))){
       $starttime = time();
    }
@@ -149,7 +152,8 @@ mmt_TableRow(
 )
 
 mmt_TableRow(
-   "STOP", 
+   "STOP",
+   my $msg = $main::line->dequeue_packet(); 
    Plant::SYSTEM->set_lights("gray", "gray", "gray");
    $ns = "STOP";
    
