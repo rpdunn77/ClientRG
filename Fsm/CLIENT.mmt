@@ -53,7 +53,7 @@ mmt_TableRow(
       my $regmsg = "REG_" . $myport;
       $main::line->enqueue_packet($regmsg);
       $ns = "WAITREG";
-   }else{
+   }else{ 
       $ns = "UNREG";
    }
    Table::TASK->suspend("CLIENT"),
