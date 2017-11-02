@@ -56,6 +56,7 @@ use constant TIMERPERIOD => 0.01;
 my $idle_event;
 my $schedular_event;
 my $myport = 5071;
+my $myserver = 'localhost';
 
 sub leaveScript {
    system("rm -f /tmp/pw*");
@@ -69,6 +70,13 @@ my $tl = Exc::TryCatch->new(
       Executive::TIMER->set_period(TIMERPERIOD);
 
       our $line = Collection::Line->new();
+      
+      print("Enter server Address: ");
+      $myserver = <STDIN>;
+      chomp $myserver;
+      print("Enter port: ");
+      $myport = <STDIN>;
+      chomp $myport;
 
       Table::SVAR->add(name => "sv_nicTo", value => 0);
       Table::SVAR->add(name => "sv_regbutton", value => 0);
@@ -82,7 +90,7 @@ my $tl = Exc::TryCatch->new(
          deadline => Executive::TIMER->s2t(1.0),
 	 run => TRUE,
          fsm => Fsm::CLIENT->new(
-            port => $myport
+            port => $myport,
          )
       );
 
@@ -93,7 +101,8 @@ my $tl = Exc::TryCatch->new(
          deadline => Executive::TIMER->s2t(0.5),
 	 run => TRUE,
          fsm => Fsm::NIC->new(
-            port => $myport
+            port => $myport,
+            server => $myserver
          )
       );
 

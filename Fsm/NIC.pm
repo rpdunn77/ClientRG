@@ -24,13 +24,22 @@ sub new {
    my $class  = shift @_;
    my %params = @_;
 
-   my $self = { port => my $port };
+   my $self = {
+      port   => my $port,
+      server => my $server
+   };
 
    if ( defined( $params{port} ) ) {
       $self->{port} = $params{port};
    }
    else {
       die( Exc::Exception->new( port => "Task::NIC PORT undefined" ) );
+   }
+   if ( defined( $params{server} ) ) {
+      $self->{server} = $params{server};
+   }
+   else {
+      die( Exc::Exception->new( port => "Task::NIC server undefined" ) );
    }
 
    bless( $self, $class );
@@ -95,7 +104,7 @@ sub tick {
 
       print("Try to open socket\n");
       $soc = new IO::Socket::INET(
-         PeerAddr => 'localhost',
+         PeerAddr => $self->{server},
          PeerPort => $self->{port},
          Proto    => 'tcp',
          Timeout  => 0.5,
