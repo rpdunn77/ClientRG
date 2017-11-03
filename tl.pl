@@ -44,6 +44,7 @@ use Executive::SCHEDULER;
 
 use Plant::SYSTEM;
 use Fsm::CLIENT;
+use Fsm::READ;
 use Fsm::NIC;
 use Fsm::TO;
 use Table::SVAR;
@@ -81,16 +82,44 @@ my $tl = Exc::TryCatch->new(
       Table::SVAR->add(name => "sv_nicTo", value => 0);
       Table::SVAR->add(name => "sv_regbutton", value => 0);
       Table::SVAR->add(name => "sv_stopbutton", value => 0);
+      Table::SVAR->add(name => "sv_regack", value => 0);
+      Table::SVAR->add(name => "sv_ondeck", value => 0);
+      Table::SVAR->add(name => "sv_go", value => 0);
+      Table::SVAR->add(name => "sv_regackto", value => 0);
 
 
       Table::TASK->new(
          name => "CLIENT", 
          periodic => TRUE, 
-         period => Executive::TIMER->s2t(1.0),
-         deadline => Executive::TIMER->s2t(1.0),
+         period => Executive::TIMER->s2t(0.5),
+         deadline => Executive::TIMER->s2t(0.5),
 	 run => TRUE,
          fsm => Fsm::CLIENT->new(
             port => $myport,
+         )
+      );
+      
+      Table::TASK->new(
+         name => "READ", 
+         periodic => TRUE, 
+         period => Executive::TIMER->s2t(0.5),
+         deadline => Executive::TIMER->s2t(0.5),
+	 run => TRUE,
+         fsm => Fsm::READ->new(
+            port => $myport,
+         )
+      );
+      
+      Table::TASK->new(
+         name => "REGACKTO", 
+         periodic => TRUE, 
+         period => Executive::TIMER->s2t(0.5),
+         deadline => Executive::TIMER->s2t(0.5),
+         run => TRUE,
+         fsm => Fsm::TO->new(
+            name => "REGACKTO",
+            timeOut => 30,
+            svName => "sv_regackto"
          )
       );
 
@@ -110,10 +139,10 @@ my $tl = Exc::TryCatch->new(
       Table::TASK->new(
          name => "NICTO", 
          periodic => TRUE, 
-	 period => Executive::TIMER->s2t(0.5),
+         period => Executive::TIMER->s2t(0.5),
          deadline => Executive::TIMER->s2t(0.5),
-	 run => TRUE,
-	 fsm => Fsm::TO->new(
+         run => TRUE,
+         fsm => Fsm::TO->new(
             name => "NICTO",
             timeOut => 150,
             svName => "sv_nicTo"

@@ -14,6 +14,7 @@ $| = 1;
 use strict;
 use warnings;
 
+
 my $myport;
 my $starttime;
 my $elapsedtime;
@@ -47,12 +48,16 @@ my $ns;
 mmt_TableRow(
    "UNREG", 
    
-   my $msg = $main::line->dequeue_packet();
    my $reg = Table::SVAR->get_value("sv_regbutton");
+   my $regack = Table::SVAR->get_value("sv_regack");
    if($reg == 1){
       my $regmsg = "REG_" . $myport;
       $main::line->enqueue_packet($regmsg);
       $ns = "WAITREG";
+      Table::TASK->reset("REGACKTO");
+   }elsif($regack){
+      Plant::SYSTEM->set_lights("red", "gray", "gray");
+      $ns = "WAITONDECK";
    }else{ 
       $ns = "UNREG";
    }
@@ -64,17 +69,15 @@ mmt_TableRow(
  
 mmt_TableRow(
    "WAITREG", 
-   my $msg = $main::line->dequeue_packet();
-
-   if (defined($msg)) {
-      my @fields = split("_", $msg);
-      if ((defined($fields[0])) && ($fields[0] eq "REGACK") && 
-         (defined($fields[1])) && ($fields[1] eq $myport)) {
-         Plant::SYSTEM->set_lights("red", "gray", "gray");
-         $ns = "WAITONDECK";
-      }else{
-         $ns = "WAITREG";
-      }
+   my $regack = Table::SVAR->get_value("sv_regack");
+   my $regackto = Table::SVAR->get_value("sv_regackto");
+   if($regack){
+      Plant::SYSTEM->set_lights("red", "gray", "gray");
+      $ns = "WAITONDECK";
+   }elsif($regackto){
+      Plant::SYSTEM->set_regbutton("grey");
+      Table::SVAR->assign("sv_regbutton", 0);
+      $ns = "UNREG";
    }else{
       $ns = "WAITREG";
    }
@@ -87,17 +90,11 @@ mmt_TableRow(
 mmt_TableRow(
    "WAITONDECK", 
 
-   my $msg = $main::line->dequeue_packet();
-
-   if (defined($msg)) {
-      my @fields = split("_", $msg);
-      if ((defined($fields[0])) && ($fields[0] eq "ONDECK") && 
-         (defined($fields[1])) && ($fields[1] eq $myport)) {
-         Plant::SYSTEM->set_lights("gray", "yellow", "gray");
-         $ns = "WAITGO";
-      }else{
-         $ns = "WAITONDECK";
-      }
+   my $ondeck = Table::SVAR->get_value("sv_ondeck");
+   
+   if($ondeck){
+      Plant::SYSTEM->set_lights("gray", "yellow", "gray");
+      $ns = "WAITGO";
    }else{
       $ns = "WAITONDECK";
    }
@@ -110,19 +107,12 @@ mmt_TableRow(
 mmt_TableRow(
    "WAITGO", 
 
-   my $msg = $main::line->dequeue_packet();
-
-   if (defined($msg)) {
-      my @fields = split("_", $msg);
-      if ((defined($fields[0])) && ($fields[0] eq "GO") && 
-         (defined($fields[1])) && ($fields[1] eq $myport)) {
-         Plant::SYSTEM->set_lights("gray", "gray", "green"); #not sure if we should move this to the start of go (after the timer started)
-         $ns = "GO";
-      }else{
-         $ns = "WAITGO";
-      }
+   my $go = Table::SVAR->get_value("sv_go");
+   
+   if($go){
+      $ns = "GO";
    }else{
-      $ns = "WAITGO";
+      $ns = "WAITONDECK";
    }
    
    Table::TASK->suspend("CLIENT"),
@@ -133,9 +123,8 @@ mmt_TableRow(
 mmt_TableRow(
    "GO",
    
-   my $msg = $main::line->dequeue_packet();
-   
    if(!(defined($starttime))){
+      Plant::SYSTEM->set_lights("gray", "gray", "green");
       $starttime = time();
    }
    my $stop = Table::SVAR->get_value("sv_stopbutton");
@@ -155,7 +144,7 @@ mmt_TableRow(
 
 mmt_TableRow(
    "STOP",
-   my $msg = $main::line->dequeue_packet(); 
+
    Plant::SYSTEM->set_lights("gray", "gray", "gray");
    $ns = "STOP";
    
@@ -168,6 +157,14 @@ mmt_TableEnd
 
 mmt_Reset(
    "UNREG",
+   Plant::SYSTEM->set_lights("gray", "gray", "gray");
+   Plant::SYSTEM->set_regbutton("grey");
+   Plant::SYSTEM->set_stopbutton("grey");
+   Table::SVAR->assign("sv_stopbutton", 0);
+   Table::SVAR->assign("sv_regbutton", 0);
+   Table::SVAR->assign("sv_regack", 0);
+   Table::SVAR->assign("sv_ondeck", 0);
+   Table::SVAR->assign("sv_go", 0);
 
 )
 
