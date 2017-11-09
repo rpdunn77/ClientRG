@@ -16,6 +16,7 @@ use warnings;
 
 
 my $myport;
+my $myID;
 my $starttime;
 my $elapsedtime;
 
@@ -26,7 +27,8 @@ sub  new {
    my %params = @_;
 
  my $self = {
-      port => my $port
+      port => my $port,
+      clientID => my $clientID
    };
    
    if (defined($params{port})) {
@@ -34,6 +36,13 @@ sub  new {
       $myport = $self->{port};
    } else {
       die(Exc::Exception->new(port => "Task::CLIENT PORT undefined"));
+   }
+   
+   if (defined($params{clientID})) {
+      $self->{clientID} = $params{clientID};
+      $myID = $self->{clientID};
+   } else {
+      die(Exc::Exception->new(clientID => "Task::CLIENT ID undefined"));
    }
 
    bless ($self, $class);
@@ -48,10 +57,11 @@ my $ns;
 mmt_TableRow(
    "UNREG", 
    
+   my $msg = $main::line->dequeue_packet();
    my $reg = Table::SVAR->get_value("sv_regbutton");
    my $regack = Table::SVAR->get_value("sv_regack");
    if($reg == 1){
-      my $regmsg = "REG_" . $myport;
+      my $regmsg = "REG_" . $myID . "_" . $myport;
       $main::line->enqueue_packet($regmsg);
       $ns = "WAITREG";
       Table::TASK->reset("REGACKTO");

@@ -58,6 +58,7 @@ my $idle_event;
 my $schedular_event;
 my $myport = 5071;
 my $myserver = 'localhost';
+my $clientID = 'TEMPID';
 
 sub leaveScript {
    system("rm -f /tmp/pw*");
@@ -75,6 +76,9 @@ my $tl = Exc::TryCatch->new(
       print("Enter server Address: ");
       $myserver = <STDIN>;
       chomp $myserver;
+      print("Enter ID: ");
+      $clientID = <STDIN>;
+      chomp $clientID;
       print("Enter port: ");
       $myport = <STDIN>;
       chomp $myport;
@@ -82,11 +86,11 @@ my $tl = Exc::TryCatch->new(
       Table::SVAR->add(name => "sv_nicTo", value => 0);
       Table::SVAR->add(name => "sv_regbutton", value => 0);
       Table::SVAR->add(name => "sv_stopbutton", value => 0);
+      Table::SVAR->add(name => "sv_clientID", value => 0);
       Table::SVAR->add(name => "sv_regack", value => 0);
       Table::SVAR->add(name => "sv_ondeck", value => 0);
       Table::SVAR->add(name => "sv_go", value => 0);
       Table::SVAR->add(name => "sv_regackto", value => 0);
-
 
       Table::TASK->new(
          name => "CLIENT", 
@@ -96,6 +100,7 @@ my $tl = Exc::TryCatch->new(
 	 run => TRUE,
          fsm => Fsm::CLIENT->new(
             port => $myport,
+            clientID => $clientID
          )
       );
       
