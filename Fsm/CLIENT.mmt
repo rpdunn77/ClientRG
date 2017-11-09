@@ -127,6 +127,7 @@ mmt_TableRow(
       Plant::SYSTEM->set_lights("gray", "gray", "green");
       $starttime = time();
    }
+   Plant::SYSTEM->set_lights("gray", "gray", "green");
    my $stop = Table::SVAR->get_value("sv_stopbutton");
    if($stop == 1){
       my $stoptime = time();
