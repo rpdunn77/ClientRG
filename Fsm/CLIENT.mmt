@@ -126,12 +126,14 @@ mmt_TableRow(
    if(!(defined($starttime))){
       Plant::SYSTEM->set_lights("gray", "gray", "green");
       $starttime = time();
+      print $starttime . "\n";
    }
    Plant::SYSTEM->set_lights("gray", "gray", "green");
    my $stop = Table::SVAR->get_value("sv_stopbutton");
    if($stop == 1){
       my $stoptime = time();
       $elapsedtime = $stoptime - $starttime;
+      print $stoptime . "\n";
       my $donemsg = "DONE_" . $myport . "_" . $elapsedtime;
       $main::line->enqueue_packet($donemsg);
       $ns = "STOP";
@@ -166,6 +168,7 @@ mmt_Reset(
    Table::SVAR->assign("sv_regack", 0);
    Table::SVAR->assign("sv_ondeck", 0);
    Table::SVAR->assign("sv_go", 0);
+   undef($starttime);
 
 )
 
