@@ -141,4 +141,18 @@ sub set_lights {
    $notificationGreen->set_light($params[2]);
 }
 
+sub set_regbutton {
+   my $class = shift @_;
+   my @params = @_;
+
+   $regLight->set_light($params[0]);
+}
+
+sub set_stopbutton {
+   my $class = shift @_;
+   my @params = @_;
+
+   $stopLight->set_light($params[0]);
+}
+
 1;
